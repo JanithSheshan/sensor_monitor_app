@@ -8,9 +8,10 @@
 A professional Flutter mobile application for real-time IoT sensor monitoring with Firebase integration, featuring live data visualization, analytics, and alert systems.
 
 <div align="center">
-    <img src="assets/img/img-1.jpg" alt="Dashboard Preview" width="200"/>
-    <img src="assets/img/img-2.jpg" alt="Dashboard Preview" width="200"/>
-    <img src="assets/img/img-3.jpg" alt="Dashboard Preview" width="200"/>
+    <img src="assets/img/img-1.jpg" alt="Dashboard Preview" width="150"/>
+    <img src="assets/img/img-2.jpg" alt="Dashboard Preview" width="150"/>
+    <img src="assets/img/img-3.jpg" alt="Dashboard Preview" width="150"/>
+    <img src="assets/img/img-4.jpg" alt="Dashboard Preview" width="150"/>
 </div>
 
 ## ✨ Features
