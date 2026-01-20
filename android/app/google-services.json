@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "404510361282",
+    "project_id": "sensoread-810da",
+    "storage_bucket": "sensoread-810da.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:404510361282:android:6113b6d804983acfd15d5b",
+        "android_client_info": {
+          "package_name": "com.example.sensor_monitor_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCEleDo_6pV0t38cZDg-3XwBphF5ecKXpg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
