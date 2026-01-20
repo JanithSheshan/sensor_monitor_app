@@ -5,6 +5,15 @@
 ![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS-lightgrey)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
+<div align="center">
+    <h3>📲 Download APK</h3>
+    <p>for android</p>
+    <a href="https://drive.google.com/file/d/1UfC-31qQ6ATB8TT1p1143dCfFqJUoLY5/view?usp=sharing">
+        <img src="assets/img/logo.png" alt="Download APK" height="50"/>
+    </a>
+    <p><em>Latest stable version: v1.0.0</em></p>
+</div>
+
 A professional Flutter mobile application for real-time IoT sensor monitoring with Firebase integration, featuring live data visualization, analytics, and alert systems.
 
 <div align="center">
