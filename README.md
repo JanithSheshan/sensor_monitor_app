@@ -10,7 +10,6 @@
         <img src="assets/img/logo.png" alt="Download APK" height="150"/>
         <h3>📲 Download APK</h3><p>for android</p><p><em>Latest stable version: v1.0.0</em></p>
     </a>
-    <p><em>Latest stable version: v1.0.0</em></p>
 </div>
 
 A professional Flutter mobile application for real-time IoT sensor monitoring with Firebase integration, featuring live data visualization, analytics, and alert systems.
