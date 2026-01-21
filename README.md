@@ -20,6 +20,7 @@ A professional Flutter mobile application for real-time IoT sensor monitoring wi
     <img src="assets/img/img-2.jpg" alt="Dashboard Preview" width="150"/>
     <img src="assets/img/img-3.jpg" alt="Dashboard Preview" width="150"/>
     <img src="assets/img/img-4.jpg" alt="Dashboard Preview" width="150"/>
+    <img src="assets/img/img-5.jpg" alt="Dashboard Preview" width="150"/>
 </div>
 
 ## ✨ Features
