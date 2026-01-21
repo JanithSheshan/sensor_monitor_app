@@ -10,6 +10,7 @@
         <img src="assets/img/logo.png" alt="Download APK" height="150"/>
         <h3>📲 Download APK</h3><p>for android</p><p><em>Latest stable version: v1.0.0</em></p>
     </a>
+    <a href="">Check this out,</a> How to get this app Quickly on Android
 </div>
 
 A professional Flutter mobile application for real-time IoT sensor monitoring with Firebase integration, featuring live data visualization, analytics, and alert systems.
@@ -69,17 +70,17 @@ A professional Flutter mobile application for real-time IoT sensor monitoring wi
   - **iOS:** GoogleService-Info.plist
 - **Place files in appropriate directories**
 
-  4. **Update Firebase Configuration in** lib/main.dart:
-      ```bash
-     await Firebase.initializeApp(
-          options: const FirebaseOptions(
-          apiKey: "YOUR_API_KEY",
-          appId: "YOUR_APP_ID",
-          messagingSenderId: "YOUR_SENDER_ID",
-          projectId: "YOUR_PROJECT_ID",
-          databaseURL: "YOUR_DATABASE_URL",
-          ),
-      );
+4. **Update Firebase Configuration in** lib/main.dart:
+    ```bash
+   await Firebase.initializeApp(
+        options: const FirebaseOptions(
+        apiKey: "YOUR_API_KEY",
+        appId: "YOUR_APP_ID",
+        messagingSenderId: "YOUR_SENDER_ID",
+        projectId: "YOUR_PROJECT_ID",
+        databaseURL: "YOUR_DATABASE_URL",
+        ),
+    );
 
 5. **Run the application**
     ```bash
