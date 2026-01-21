@@ -9,7 +9,10 @@ import 'dart:io';
 import 'package:share_plus/share_plus.dart';
 
 void main() async {
+  // Initialize Flutter binding for Firebase
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Configure Firebase with project credentials
   await Firebase.initializeApp(
     options: const FirebaseOptions(
       apiKey: "AIzaSyAq9d_2nA4MlD8m0qW6S5Q8T8h8d2K9j3M",
@@ -19,9 +22,12 @@ void main() async {
       databaseURL: "https://sensoread-810da-default-rtdb.firebaseio.com",
     ),
   );
+
+  // Start the app
   runApp(const SensorMonitorApp());
 }
 
+// Data model class for sensor information
 class SensorData {
   final String sensorId;
   final List<double> readings;
@@ -37,8 +43,11 @@ class SensorData {
     required this.timestamp,
   });
 
+  // Factory constructor to create SensorData from Firebase map
   factory SensorData.fromMap(Map<dynamic, dynamic> data) {
     List<double> readingsList = [];
+
+    // Parse temperature readings from list
     if (data['readings'] is List) {
       for (var item in data['readings']) {
         if (item != null) {
@@ -47,6 +56,7 @@ class SensorData {
       }
     }
 
+    // Extract battery level from metadata
     int battery = 0;
     if (data['metadata'] != null &&
         data['metadata'] is Map &&
@@ -54,6 +64,7 @@ class SensorData {
       battery = int.parse(data['metadata']['battery_level'].toString());
     }
 
+    // Extract connection type from metadata
     String connection = 'Unknown';
     if (data['metadata'] != null &&
         data['metadata'] is Map &&
@@ -70,18 +81,22 @@ class SensorData {
     );
   }
 
+  // Check if current reading is in warning range (190-200°C or 20-10°C)
   bool get isWarning => readings.isNotEmpty &&
       (readings.last > 190 || readings.last < 20);
 
+  // Check if current reading is in critical range (>200°C or <10°C)
   bool get isCritical => readings.isNotEmpty &&
       (readings.last > 200 || readings.last < 10);
 
+  // Get last 10 readings for chart display
   List<double> get lastTenReadings {
     final length = readings.length;
     if (length <= 10) return readings;
     return readings.sublist(length - 10);
   }
 
+  // Convert last 10 readings to chart data points
   List<FlSpot> get chartSpots {
     List<FlSpot> spots = [];
     final lastTen = lastTenReadings;
@@ -92,11 +107,13 @@ class SensorData {
     return spots;
   }
 
+  // Generate CSV string from sensor data for export
   String generateCSV() {
     List<List<dynamic>> csvData = [
       ['Timestamp', 'Reading (°C)', 'Sensor ID', 'Status', 'Battery Level', 'Connection Type']
     ];
 
+    // Create CSV rows for each reading
     for (int i = 0; i < readings.length; i++) {
       final reading = readings[i];
       final isWarning = reading > 190 || reading < 20;
@@ -114,22 +131,26 @@ class SensorData {
     return const ListToCsvConverter().convert(csvData);
   }
 
+  // Calculate average temperature from all readings
   double get averageTemperature {
     if (readings.isEmpty) return 0;
     return readings.reduce((a, b) => a + b) / readings.length;
   }
 
+  // Find minimum temperature from all readings
   double get minTemperature {
     if (readings.isEmpty) return 0;
     return readings.reduce((a, b) => a < b ? a : b);
   }
 
+  // Find maximum temperature from all readings
   double get maxTemperature {
     if (readings.isEmpty) return 0;
     return readings.reduce((a, b) => a > b ? a : b);
   }
 }
 
+// Main app widget
 class SensorMonitorApp extends StatelessWidget {
   const SensorMonitorApp({super.key});
 
@@ -175,6 +196,7 @@ class SensorMonitorApp extends StatelessWidget {
   }
 }
 
+// Main screen widget that displays sensor data
 class SensorScreen extends StatefulWidget {
   const SensorScreen({super.key});
 
@@ -183,39 +205,55 @@ class SensorScreen extends StatefulWidget {
 }
 
 class _SensorScreenState extends State<SensorScreen> {
+  // Firebase database reference
   late DatabaseReference _sensorRef;
+
+  // Sensor data state
   SensorData? _sensorData;
   bool _isLoading = true;
   bool _hasError = false;
   DateTime? _lastUpdateTime;
+
+  // Timer for checking updates
   Timer? _updateCheckTimer;
   bool _isUpdating = false;
+
+  // Firebase subscription
   StreamSubscription<DatabaseEvent>? _databaseSubscription;
+
+  // Chart data
   List<double> _chartData = [];
+
+  // Page controller for tab navigation
   final PageController _pageController = PageController();
   int _selectedTab = 0;
 
   @override
   void initState() {
     super.initState();
+    // Setup Firebase listener when widget initializes
     _setupFirebaseListener();
+    // Start timer to check for updates
     _startUpdateCheckTimer();
   }
 
   @override
   void dispose() {
+    // Clean up resources
     _updateCheckTimer?.cancel();
     _databaseSubscription?.cancel();
     _pageController.dispose();
     super.dispose();
   }
 
+  // Start timer to check if sensor is still sending updates
   void _startUpdateCheckTimer() {
     _updateCheckTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
       if (_lastUpdateTime != null) {
         final now = DateTime.now();
         final difference = now.difference(_lastUpdateTime!);
 
+        // If no update for more than 5 seconds, mark as idle
         if (difference.inSeconds > 5) {
           if (_isUpdating && mounted) {
             setState(() {
@@ -223,6 +261,7 @@ class _SensorScreenState extends State<SensorScreen> {
             });
           }
         } else {
+          // If update within 5 seconds, mark as live
           if (!_isUpdating && mounted) {
             setState(() {
               _isUpdating = true;
@@ -233,21 +272,25 @@ class _SensorScreenState extends State<SensorScreen> {
     });
   }
 
+  // Export sensor data to CSV file and share it
   Future<void> _exportToCSV() async {
     if (_sensorData == null) return;
 
     try {
+      // Generate CSV content
       final csvContent = _sensorData!.generateCSV();
       final directory = await getTemporaryDirectory();
       final fileName = 'sensor_data_${_sensorData!.sensorId}_${DateTime.now().millisecondsSinceEpoch}.csv';
       final file = File('${directory.path}/$fileName');
       await file.writeAsString(csvContent);
 
+      // Share the CSV file
       final result = await Share.shareXFiles([XFile(file.path)],
           text: 'Sensor Data Export - ${_sensorData!.sensorId}',
           subject: 'Sensor Data CSV Export'
       );
 
+      // Show success message
       if (result.status == ShareResultStatus.success) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -261,6 +304,7 @@ class _SensorScreenState extends State<SensorScreen> {
         );
       }
     } catch (e) {
+      // Show error message if export fails
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to export CSV: $e'),
@@ -274,18 +318,23 @@ class _SensorScreenState extends State<SensorScreen> {
     }
   }
 
+  // Setup Firebase realtime database listener
   void _setupFirebaseListener() {
     try {
+      // Reference to specific sensor node
       _sensorRef = FirebaseDatabase.instance.ref('sensors/SENSOR_UNIT_01');
 
+      // Listen for data changes
       _databaseSubscription = _sensorRef.onValue.listen((event) {
         final data = event.snapshot.value;
 
         if (data != null && data is Map) {
+          // Track previous reading count to detect new readings
           final previousReadingCount = _sensorData?.readings.length ?? 0;
           final newData = SensorData.fromMap(Map<String, dynamic>.from(data));
           final currentReadingCount = newData.readings.length;
 
+          // Update state with new data
           setState(() {
             _sensorData = newData;
             _lastUpdateTime = DateTime.now();
@@ -293,12 +342,14 @@ class _SensorScreenState extends State<SensorScreen> {
             _hasError = false;
             _chartData = newData.lastTenReadings;
 
+            // Mark as updating if new readings arrived
             if (currentReadingCount > previousReadingCount) {
               _isUpdating = true;
             }
           });
         }
       }, onError: (error) {
+        // Handle Firebase errors
         setState(() {
           _hasError = true;
           _isLoading = false;
@@ -306,6 +357,7 @@ class _SensorScreenState extends State<SensorScreen> {
         });
       });
     } catch (e) {
+      // Handle initialization errors
       setState(() {
         _hasError = true;
         _isLoading = false;
@@ -314,6 +366,7 @@ class _SensorScreenState extends State<SensorScreen> {
     }
   }
 
+  // Build update status indicator widget
   Widget _buildUpdateStatus(bool isUpdating) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -330,6 +383,7 @@ class _SensorScreenState extends State<SensorScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Status indicator dot
           Container(
             width: 8,
             height: 8,
@@ -352,7 +406,9 @@ class _SensorScreenState extends State<SensorScreen> {
     );
   }
 
+  // Build battery level indicator widget
   Widget _buildBatteryIndicator(int level) {
+    // Determine color based on battery level
     Color batteryColor;
     if (level > 70) {
       batteryColor = Colors.green;
@@ -389,10 +445,12 @@ class _SensorScreenState extends State<SensorScreen> {
     );
   }
 
+  // Build connection type indicator widget
   Widget _buildConnectionIndicator(String type) {
     IconData icon;
     Color color;
 
+    // Set icon and color based on connection type
     switch (type.toLowerCase()) {
       case 'wifi':
         icon = Icons.wifi;
@@ -430,6 +488,7 @@ class _SensorScreenState extends State<SensorScreen> {
     );
   }
 
+  // Build main temperature card widget
   Widget _buildTemperatureCard() {
     if (_sensorData == null) return Container();
 
@@ -442,6 +501,7 @@ class _SensorScreenState extends State<SensorScreen> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
+            // Sensor ID and status row
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -469,6 +529,7 @@ class _SensorScreenState extends State<SensorScreen> {
             ),
             const SizedBox(height: 20),
 
+            // Warning/Critical alert
             if (isCritical)
               Container(
                 width: double.infinity,
@@ -522,6 +583,7 @@ class _SensorScreenState extends State<SensorScreen> {
 
             if (isWarning || isCritical) const SizedBox(height: 20),
 
+            // Current temperature display
             Center(
               child: Column(
                 children: [
@@ -550,6 +612,7 @@ class _SensorScreenState extends State<SensorScreen> {
             ),
             const SizedBox(height: 24),
 
+            // Battery and connection indicators
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -565,6 +628,7 @@ class _SensorScreenState extends State<SensorScreen> {
             ),
             const SizedBox(height: 16),
 
+            // Last update time
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -588,6 +652,7 @@ class _SensorScreenState extends State<SensorScreen> {
     );
   }
 
+  // Build temperature trend chart widget
   Widget _buildAnalyticsChart() {
     if (_chartData.isEmpty || _sensorData == null) {
       return Container(
@@ -630,6 +695,7 @@ class _SensorScreenState extends State<SensorScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Chart header with export button
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -658,6 +724,7 @@ class _SensorScreenState extends State<SensorScreen> {
             ),
             const SizedBox(height: 20),
 
+            // Line chart
             SizedBox(
               height: 250,
               child: LineChart(
@@ -719,6 +786,7 @@ class _SensorScreenState extends State<SensorScreen> {
                   minY: (minY - 10).clamp(0, double.infinity).toDouble(),
                   maxY: (maxY + 10).clamp(0, double.infinity).toDouble(),
                   lineBarsData: [
+                    // Main temperature line
                     LineChartBarData(
                       spots: spots,
                       isCurved: true,
@@ -748,6 +816,7 @@ class _SensorScreenState extends State<SensorScreen> {
                         ),
                       ),
                     ),
+                    // Upper warning line (190°C)
                     LineChartBarData(
                       spots: [
                         FlSpot(0, 190),
@@ -759,6 +828,7 @@ class _SensorScreenState extends State<SensorScreen> {
                       isCurved: false,
                       dotData: const FlDotData(show: false),
                     ),
+                    // Lower warning line (20°C)
                     LineChartBarData(
                       spots: [
                         FlSpot(0, 20),
@@ -798,6 +868,7 @@ class _SensorScreenState extends State<SensorScreen> {
     );
   }
 
+  // Build analytics grid with metrics
   Widget _buildAnalyticsGrid() {
     if (_sensorData == null) return Container();
 
@@ -815,12 +886,13 @@ class _SensorScreenState extends State<SensorScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            // Use responsive grid with more flexible sizing
+
+            // Responsive grid layout
             LayoutBuilder(
               builder: (context, constraints) {
-                // Calculate card height based on available width
+                // Calculate card dimensions based on available width
                 final cardWidth = (constraints.maxWidth - 48) / 2;
-                final cardHeight = cardWidth * 0.85; // Slightly smaller aspect ratio
+                final cardHeight = cardWidth * 0.85;
 
                 return GridView.count(
                   shrinkWrap: true,
@@ -864,6 +936,7 @@ class _SensorScreenState extends State<SensorScreen> {
     );
   }
 
+  // Build individual analytic card widget
   Widget _buildAnalyticCard(String title, String value, IconData icon, Color color) {
     return Container(
       decoration: BoxDecoration(
@@ -879,6 +952,7 @@ class _SensorScreenState extends State<SensorScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          // Icon container
           Container(
             width: 36,
             height: 36,
@@ -888,6 +962,8 @@ class _SensorScreenState extends State<SensorScreen> {
             ),
             child: Icon(icon, color: color, size: 18),
           ),
+
+          // Value and title
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -915,6 +991,7 @@ class _SensorScreenState extends State<SensorScreen> {
     );
   }
 
+  // Build tab navigation bar
   Widget _buildTabBar() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -939,6 +1016,7 @@ class _SensorScreenState extends State<SensorScreen> {
     );
   }
 
+  // Build individual tab button
   Widget _buildTabButton(String text, int index) {
     final isSelected = _selectedTab == index;
     return GestureDetector(
@@ -976,6 +1054,7 @@ class _SensorScreenState extends State<SensorScreen> {
     );
   }
 
+  // Build overview page with all main widgets
   Widget _buildOverviewPage() {
     return SingleChildScrollView(
       child: Column(
@@ -989,6 +1068,7 @@ class _SensorScreenState extends State<SensorScreen> {
     );
   }
 
+  // Build analytics page (placeholder)
   Widget _buildAnalyticsPage() {
     return Center(
       child: SingleChildScrollView(
@@ -1023,6 +1103,7 @@ class _SensorScreenState extends State<SensorScreen> {
     );
   }
 
+  // Build history page with reading list
   Widget _buildHistoryPage() {
     if (_sensorData == null || _sensorData!.readings.isEmpty) {
       return Center(
@@ -1058,10 +1139,12 @@ class _SensorScreenState extends State<SensorScreen> {
       );
     }
 
+    // List of historical readings
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: _sensorData!.readings.length,
       itemBuilder: (context, index) {
+        // Show most recent readings first
         final reversedIndex = _sensorData!.readings.length - 1 - index;
         final reading = _sensorData!.readings[reversedIndex];
         final isWarning = reading > 190 || reading < 20;
@@ -1169,6 +1252,7 @@ class _SensorScreenState extends State<SensorScreen> {
         ),
         centerTitle: false,
         actions: [
+          // Refresh button
           IconButton(
             icon: Icon(
               Icons.refresh_rounded,
@@ -1182,6 +1266,7 @@ class _SensorScreenState extends State<SensorScreen> {
             },
             tooltip: 'Refresh Connection',
           ),
+          // Export button
           IconButton(
             icon: const Icon(Icons.download_rounded),
             onPressed: _exportToCSV,
@@ -1192,6 +1277,8 @@ class _SensorScreenState extends State<SensorScreen> {
         backgroundColor: Theme.of(context).colorScheme.surface,
         scrolledUnderElevation: 2,
       ),
+
+      // Main body with loading/error/content states
       body: _isLoading
           ? Center(
         child: Column(
@@ -1227,6 +1314,7 @@ class _SensorScreenState extends State<SensorScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              // Error icon
               Container(
                 width: 100,
                 height: 100,
@@ -1256,6 +1344,7 @@ class _SensorScreenState extends State<SensorScreen> {
                 ),
               ),
               const SizedBox(height: 32),
+              // Retry button
               ElevatedButton.icon(
                 onPressed: () {
                   setState(() {
