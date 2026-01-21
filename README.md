@@ -42,9 +42,8 @@ A professional Flutter mobile application for real-time IoT sensor monitoring wi
 - **Charts**: fl_chart for data visualization
 - **File Handling**: CSV export with share functionality
 - **Platform**: Android & iOS compatible
-- **State Management**: Provider/Riverpod (specify which one you use)
 
-## 🚀 Quick Start
+## 🚀 Let's Start
 
 ### Prerequisites
 
@@ -169,7 +168,6 @@ This project utilized AI assistance in the following areas:
 - **Code Generation:** Initial boilerplate code and Firebase integration
 - **UI/UX Design:** Layout suggestions and responsive design patterns
 - **Error Handling:** Best practices for network and data processing
-- **Documentation:** README structure and code comments
 
 ### Human Oversight
 
