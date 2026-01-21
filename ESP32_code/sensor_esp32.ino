@@ -55,16 +55,16 @@ void loop() {
 }
 
 void initializeReadingsArray() {
-  // Start with 5 random readings between 0-200
+  // Start with 5 random readings between 0-100
   for (int i = 0; i < 5; i++) {
-    float reading = random(0, 20001) / 100.0;
+    float reading = random(0, 10001) / 100.0;
     readingsArray.add(reading);
   }
 }
 
 void sendSensorDataInFormat() {
   // Generate random values
-  float newReading = random(0, 20001) / 100.0; // 0.0 to 200.0°C
+  float newReading = random(0, 10001) / 100.0; // 0.0 to 100.0°C
   
   // Determine status based on temperature
   String status = "active";
