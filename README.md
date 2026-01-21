@@ -135,10 +135,10 @@ A professional Flutter mobile application for real-time IoT sensor monitoring wi
 ### Alert System
 
 | Status | Temperature Range | Indicator  |
-|-----|-------------------|------------|
-|Normal	| 20°C - 190°C      | 🟢 Green   |
-Warning	| >10°C or <200°C   | 	🟠 Orange |
-Critical | <10°C or >200°C	  | 🔴 Red     |
+|--------|-------------------|------------|
+| Normal	| 20°C - 80°C       | 🔵 Blue    |
+| Warning	| >10°C or <80°C    | 	🟠 Orange |
+| Critical | <10°C or >90°C	   | 🔴 Red     |
 
 
 ### Data Export

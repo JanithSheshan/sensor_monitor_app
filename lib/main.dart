@@ -81,13 +81,13 @@ class SensorData {
     );
   }
 
-  // Check if current reading is in warning range (190-200°C or 20-10°C)
+  // Check if current reading is in warning range (80-90°C or 20-10°C)
   bool get isWarning => readings.isNotEmpty &&
-      (readings.last > 190 || readings.last < 20);
+      (readings.last > 80 || readings.last < 20);
 
-  // Check if current reading is in critical range (>200°C or <10°C)
+  // Check if current reading is in critical range (>90°C or <10°C)
   bool get isCritical => readings.isNotEmpty &&
-      (readings.last > 200 || readings.last < 10);
+      (readings.last > 90 || readings.last < 10);
 
   // Get last 10 readings for chart display
   List<double> get lastTenReadings {
@@ -116,7 +116,7 @@ class SensorData {
     // Create CSV rows for each reading
     for (int i = 0; i < readings.length; i++) {
       final reading = readings[i];
-      final isWarning = reading > 190 || reading < 20;
+      final isWarning = reading > 80 || reading < 20;
       final timestamp = DateTime.now().subtract(Duration(seconds: (readings.length - i) * 5));
       csvData.add([
         timestamp.toIso8601String(),
@@ -816,11 +816,11 @@ class _SensorScreenState extends State<SensorScreen> {
                         ),
                       ),
                     ),
-                    // Upper warning line (190°C)
+                    // Upper warning line (80°C)
                     LineChartBarData(
                       spots: [
-                        FlSpot(0, 190),
-                        FlSpot(spots.length > 0 ? spots.length.toDouble() - 1 : 9, 190),
+                        FlSpot(0, 80),
+                        FlSpot(spots.length > 0 ? spots.length.toDouble() - 1 : 9, 80),
                       ],
                       color: Colors.red.withOpacity(0.3),
                       barWidth: 2,
@@ -1147,8 +1147,8 @@ class _SensorScreenState extends State<SensorScreen> {
         // Show most recent readings first
         final reversedIndex = _sensorData!.readings.length - 1 - index;
         final reading = _sensorData!.readings[reversedIndex];
-        final isWarning = reading > 190 || reading < 20;
-        final isCritical = reading > 200 || reading < 10;
+        final isWarning = reading > 80 || reading < 20;
+        final isCritical = reading > 90 || reading < 10;
 
         return Container(
           margin: const EdgeInsets.only(bottom: 8),
